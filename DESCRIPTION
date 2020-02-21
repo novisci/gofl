@@ -1,0 +1,15 @@
+Package: filterDSL
+Type: Package
+Title: A DSL for specifying subgroups from binary and categorical variables
+Version: 0.1.0
+Authors@R: c(person("Bradley", "Saul", role = c("aut", "cre"), 
+                            email = "bsaul@novisci.com"))
+Maintainer: Bradley Saul <bsaul@novisci.com>
+Description: Provides a simple DSL for writing subgrouping specifications; i.e.,
+     the ways to filter a dataset based on binary and/or categorical variables.
+License: AGPL-3 + file LICENSE
+Encoding: UTF-8
+LazyData: true
+URL: https://gitlab.novisci.com/nsStat/filterDSL
+Repository: cran.novisci.com
+RoxygenNote: 7.0.2
