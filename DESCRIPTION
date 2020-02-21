@@ -7,6 +7,8 @@ Authors@R: c(person("Bradley", "Saul", role = c("aut", "cre"),
 Maintainer: Bradley Saul <bsaul@novisci.com>
 Description: Provides a simple DSL for writing subgrouping specifications; i.e.,
      the ways to filter a dataset based on binary and/or categorical variables.
+Imports:
+   Matrix (>= 1.2)
 License: AGPL-3 + file LICENSE
 Encoding: UTF-8
 LazyData: true
