@@ -1,7 +1,7 @@
 Domain specific language for defining subgroups
 -----------------------------------------------
 
-`filterDSL` is a simple DSL for defining subgroups of an analytic dataset.
+`filterDSL` is a simple DSL in `R` for defining subgroups of an analytic dataset.
 
 An example
 ==========
