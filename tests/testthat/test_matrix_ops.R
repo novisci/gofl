@@ -1,4 +1,4 @@
-testthat::context("Matrix operations")
+# context("Matrix operations")
 
 test_that("...", {
   library(Matrix)
