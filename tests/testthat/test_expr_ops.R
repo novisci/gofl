@@ -1,19 +1,13 @@
 # context("expression operations")
 
 test_that("eval_expr correctly evals expression", {
-  library(rlang)
-  library(Matrix)
-  x1 = Diagonal(2L, c(1, 1))
+
+  x1 = Matrix::Diagonal(2L, c(1, 1))
   dimnames(x1) <- list(NULL, c("x1", "x2"))
-  y1 = Diagonal(2L, c(1, 1))
+  y1 = Matrix::Diagonal(2L, c(1, 1))
   dimnames(y1) <- list(NULL, c("y1", "y2"))
-  z1 = Diagonal(3L, c(1, 1, 1))
+  z1 = Matrix::Diagonal(3L, c(1, 1, 1))
   dimnames(z1) <- list(NULL, c("z1", "z2", "z3"))
-
-
-  bin_rep <- function(x){
-    apply(x, 1, as_bin)
-  }
 
   dat <- list(x = x1, y = y1, z = z1)
 

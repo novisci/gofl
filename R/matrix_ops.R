@@ -7,7 +7,7 @@
   ycol <- dimnames(y)[[2]]
   if(any(xcol %in% ycol)){
     out <- x %<n>% y
-    out <- out[!duplicated(apply(out, 1,  as_bin)), ]
+    out <- out[!duplicated(bin_rep(x)), ]
   } else {
     out <- Matrix::bdiag(x, y)
     dimnames(out) <- list(NULL, c(xcol, ycol))

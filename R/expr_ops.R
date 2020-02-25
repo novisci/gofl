@@ -2,7 +2,7 @@
 #' @importFrom rlang is_symbol
 #' @noRd
 
-is_rootish <- function(x){
+is_leafish <- function(x){
   rlang::is_symbol(x) || is_zoom(x[[1]])
 }
 
@@ -44,7 +44,7 @@ is_sum <- function(x){
 examine_expr <- function(expr){
 
   # Exit if nullary, unary or zoom
-  if(is_rootish(expr)){
+  if(is_leafish(expr)){
     return(expr)
   } else if (is_product(expr[[1]])){
     expr[[1]] <- `%pw%`

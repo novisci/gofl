@@ -1,10 +1,9 @@
 # context("Matrix operations")
 
 test_that("...", {
-  library(Matrix)
-  x <- Diagonal(2, c(1, 1))
-  y <- Diagonal(3, c(1, 1, 1))
-  z <- Diagonal(4, c(1, 1, 1, 1))
+  x <- Matrix::Diagonal(2, c(1, 1))
+  y <- Matrix::Diagonal(3, c(1, 1, 1))
+  z <- Matrix::Diagonal(4, c(1, 1, 1, 1))
 
 
   ind_combn_count <- function(...){
