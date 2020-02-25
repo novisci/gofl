@@ -1,2 +1,2 @@
 library(testthat)
-test_check("filterDSL")
+test_check("gofl")
