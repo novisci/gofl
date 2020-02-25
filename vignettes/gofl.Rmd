@@ -1,0 +1,92 @@
+---
+title: "gofl usage"
+author: "Bradley Saul"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Using gofl}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+library(gofl)
+
+dat <- list(
+  x = c(TRUE, FALSE),
+  y = c("a", "b", "c"),
+  z = 1:4
+)
+
+create_grouping_matrix(~z + .zoom(x):y, dat)
+example1 <- create_grouping_quos(~z + x:.zoom(y, c(1,2)), dat)
+head(example1)
+```
+
+```{r}
+
+
+study_plan <- ~ 
+    # within enrolled: (for weighting)
+    #  - prevalent
+    #      - overall
+    #      - by all age/sex crosses
+    #  - incident
+    #      - overall
+    #      - by all age/sex crosses
+    (enroll:( 
+      (prev_cand + inc_cand) + 
+      (prev_cand + inc_cand):(baseline_age_cat*baseline_sex) )) + 
+  
+    # within enrolled365: (for figures)
+    #  - prevalent
+    #      - overall
+    #      - by all age/sex crosses
+    #  - incident
+    #      - overall
+    #      - by all age/sex crosses (with subgrouping by region, diabetes)
+    (enroll365:( 
+      (prev_cand + inc_cand) + 
+      ((prev_cand + inc_cand):
+        ((
+            baseline_age_cat*baseline_sex) *
+             (baseline_region +
+              baseline_diabetes +
+              baseline_renal +
+              baseline_ascvd)
+          )
+       )
+     ) 
+  ) + 
+  # within enrolled365: (for table 1)
+  #  - prevalent only 
+  #  - incident only  
+  (enroll365:((prev_only + inc_only))) +
+     
+  #  within enrolledAll: (for sensitivity analysis) 
+  #  - prevalent only (for table 1)
+  #  - incident only  (for table 1) 
+   (enrollAll:( 
+     (prev_cand + inc_cand) + 
+    ((prev_cand + inc_cand):(baseline_age_cat*baseline_sex) )))
+
+
+dat <- list(
+  enroll    = TRUE,
+  enroll365 = TRUE,
+  enrollAll = TRUE,
+  prev_cand = TRUE,
+  inc_cand  = TRUE, 
+  prev_only = TRUE,
+  inc_only  = TRUE,
+  baseline_age_cat = c("45-54", "55-64", "65-74", "75+"),
+  baseline_sex     = c("female", "male"),
+  baseline_region  = c(""),
+  baseline_diabetes  = c(TRUE, FALSE),
+  baseline_renal     = c(TRUE, FALSE),
+  baseline_ascvd     = c(TRUE, FALSE)
+)
+
+create_grouping_matrix(study_plan, dat)
+# create_grouping_quos(study_plan, dat)
+```

@@ -91,6 +91,7 @@
                        x = 1L, dims = c(1L, ncol(x)))
 }
 
+z <- .zoom
 
 #' An internal function for creating all no-way, 1-way, 2-way, ... n-way
 #' combinations from a set of identity matrices.

@@ -9,12 +9,15 @@ Description: Provides a simple DSL for writing grouping specifications; i.e.,
      the ways to filter a dataset based on binary and/or categorical variables.
 Imports:
    Matrix (>= 1.2),
-   rlang  (>= 0.4.2)
+   rlang  (>= 0.4.2),
+   purrr  (>= 0.3)
 Suggests:
-   testthat
+   testthat,
+   knitr
 License: AGPL-3 + file LICENSE
 Encoding: UTF-8
 LazyData: true
 URL: https://gitlab.novisci.com/nsStat/gofl
 Repository: cran.novisci.com
+VignetteBuilder: knitr
 RoxygenNote: 7.0.2

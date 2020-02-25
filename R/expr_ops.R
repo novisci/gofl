@@ -43,6 +43,7 @@ is_sum <- function(x){
 
 examine_expr <- function(expr){
 
+  # browser()
   # Exit if nullary, unary or zoom
   if(is_leafish(expr)){
     return(expr)
@@ -58,7 +59,7 @@ examine_expr <- function(expr){
 }
 
 traverse_expr <- function(expr){
-  if (length(expr) == 1 || is_zoom(expr) ){
+  if (length(expr) == 1 || is_zoom(expr[[1]]) ){
     expr
   } else {
     expr[-1] <- lapply(expr[-1], function(x) examine_expr(traverse_expr(x)))

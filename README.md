@@ -1,7 +1,7 @@
 Domain specific language for defining subgroups
 -----------------------------------------------
 
-`filterDSL` is a simple DSL in `R` for defining subgroups of an analytic dataset.
+`gofl` is a simple DSL in `R` for defining subgroups of an analytic dataset.
 
 An example
 ==========
@@ -10,7 +10,7 @@ Suppose `enroll`, `enroll365`, `prev_cand`, `inc_cand`, `prev_only`, `inc_only`
 are `stype::v_binary`. `age_cat` is `v_ordered` with 3 levels; `sex` is `v_nominal`
 with 2 levels; and region has 4 levels.
 
-`filterDSL` has 3 functions: `*`, `+`, and `z()`, correspoding to product,
+`gofl` has 3 functions: `*`, `+`, and `z()`, correspoding to product,
 disjoint union, and zoom (discard) operations. `z()` takes two arguments,
 a binary or categorical variable and a set of values.
 By default, `z(some_binary) == z(some_binary, TRUE)`.
