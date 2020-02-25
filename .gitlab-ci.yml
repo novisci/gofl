@@ -1,0 +1,23 @@
+image: registry.novisci.com/nsstat/statocker/r/pkgdev:latest
+
+stages:
+  - testing
+  - package
+
+testing:
+  stage: testing
+  script:
+    - R -e 'devtools::check(manual = FALSE)'
+
+package:
+  stage: package
+  script:
+    - rm -rf .git
+    - R CMD build .
+
+minicran:
+  stage: package
+  only:
+    - master
+  script:
+    - Rscript -e "library(miniCRAN); addLocalPackage('${CI_PROJECT_NAME}', pkgPath='..', path='/mnt/cran.novisci.com', type='source', build=TRUE)"
