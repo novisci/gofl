@@ -67,6 +67,6 @@ create_grouping_quos <- function(formula, data){
   # create final quosures
   gquos <- apply(grouping_mat, 1, function(x) prepquos[as.logical(x)])
   gquos <- purrr::map(gquos, collect_by_key)
-  gquos <- purrr::map(gquos, ~ purrr::map(.x, collapse_by_or))
+  gquos <- purrr::map(gquos, ~ unname(purrr::map(.x, collapse_by_or)))
   gquos
 }
