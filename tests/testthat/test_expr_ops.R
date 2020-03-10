@@ -12,12 +12,12 @@ test_that("eval_expr correctly evals expression", {
   dat <- list(x = x1, y = y1, z = z1)
 
   expect_equal(
-    bin_rep(eval_expr(~ x*y, dat)),
+    bin_rep(eval_expr(~ x*y, dat, .f = strip_tagger)),
     c(1, 2, 4, 8, 5, 9, 6, 10)
   )
 
   expect_equal(
-    bin_rep(eval_expr(~ x:y, dat)),
+    bin_rep(eval_expr(~ x:y, dat, .f = strip_tagger)),
     c(5, 9, 6, 10)
   )
 

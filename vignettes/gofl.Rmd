@@ -19,7 +19,7 @@ dat <- list(
 )
 
 create_grouping_matrix(~z + .zoom(x):y, dat)
-example1 <- create_grouping_quos(~z + x:.zoom(y, c(1,2)), dat)
+example1 <- create_groupings(~z + x:.zoom(y, c(1,2)), dat)
 head(example1)
 ```
 

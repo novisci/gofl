@@ -1,7 +1,7 @@
 Package: gofl
 Type: Package
 Title: A grouping, organizing, and filtering language
-Version: 0.1.1
+Version: 0.2.0
 Authors@R: c(person("Bradley", "Saul", role = c("aut", "cre"), 
                             email = "bsaul@novisci.com"))
 Maintainer: Bradley Saul <bsaul@novisci.com>
@@ -10,9 +10,11 @@ Description: Provides a simple DSL for writing grouping specifications; i.e.,
 Imports:
    Matrix (>= 1.2),
    rlang  (>= 0.4.2),
-   purrr  (>= 0.3)
+   purrr  (>= 0.3),
+   methods
 Suggests:
    testthat,
+   dplyr,
    knitr
 License: AGPL-3 + file LICENSE
 Encoding: UTF-8

@@ -1,20 +1,70 @@
+#' An internal representative of tagged matrices
+#' @noRd
+setClass(
+  "tagged",
+  slots = c(
+    mat = "dMatrix",
+    tags = "list"
+  )
+)
+
 #' Internal matrix operators
 #' @importFrom Matrix bdiag sparseMatrix kronecker
 #' @noRd
-`%+%` <- function(x, y){
 
-  xcol <- dimnames(x)[[2]]
-  ycol <- dimnames(y)[[2]]
-  if(any(xcol %in% ycol)){
-    out <- x %<n>% y
-    out <- out[!duplicated(bin_rep(x)), ]
-  } else {
-    out <- Matrix::bdiag(x, y)
-    dimnames(out) <- list(NULL, c(xcol, ycol))
+setGeneric("%+%", function(x, y) standardGeneric("%+%"))
+
+setMethod(
+  "%+%",
+  signature = c("dMatrix", "dMatrix"),
+  function(x, y){
+
+    # browser()
+    xcol <- dimnames(x)[[2]]
+    ycol <- dimnames(y)[[2]]
+    if(any(xcol %in% ycol)){
+      out <- x %<n>% y
+      out <- out[!duplicated(bin_rep(x)), ]
+    } else {
+      out <- Matrix::bdiag(x, y)
+      dimnames(out) <- list(NULL, c(xcol, ycol))
+    }
+
+    out
   }
+)
 
-  out
+setMethod(
+  "%+%",
+  signature = c("integer", "integer"),
+  function(x, y){ x + y }
+)
+
+do_tagged_op <- function(mat_op, tag_op, xmat, ymat, xtags, ytags){
+  # browser()
+  methods::new(
+    "tagged",
+     mat  = mat_op(xmat, ymat),
+     tags = tag_op(xtags, ytags))
 }
+
+setMethod(
+  "%+%",
+  signature = c("tagged", "tagged"),
+  function(x, y){ do_tagged_op(`%+%`, c, x@mat, y@mat, x@tags, y@tags) }
+)
+
+setMethod(
+  "%+%",
+  signature = c("dMatrix", "tagged"),
+  function(x, y){ do_tagged_op(`%+%`, c, x, y@mat, empty_tags(nrow(x)), y@tags) }
+)
+
+setMethod(
+  "%+%",
+  signature = c("tagged", "dMatrix"),
+  function(x, y){ do_tagged_op(`%+%`, c, x@mat, y, x@tags, empty_tags(nrow(y))) }
+)
 
 #' cbind
 #' @noRd
@@ -41,11 +91,42 @@
 
 #' pairwise combinations
 #' @noRd
-`%cp%` <- function(x, y){
-  out <- kronecker(x, rep.int(1, nrow(y))) %||% kronecker(rep.int(1, nrow(x)), y)
-  dimnames(out) <- list(NULL, c(dimnames(x)[[2]], dimnames(y)[[2]]))
-  out
-}
+setGeneric("%cp%", function(x, y) standardGeneric("%cp%"))
+
+setMethod(
+  "%cp%",
+  signature = c("dMatrix", "dMatrix"),
+  function(x, y){
+    out <- kronecker(x, rep.int(1, nrow(y))) %||% kronecker(rep.int(1, nrow(x)), y)
+    dimnames(out) <- list(NULL, c(dimnames(x)[[2]], dimnames(y)[[2]]))
+    out
+  }
+)
+
+setMethod(
+  "%cp%",
+  signature = c("integer", "integer"),
+  function(x, y){ x * y }
+)
+
+
+setMethod(
+  "%cp%",
+  signature = c("tagged", "tagged"),
+  function(x, y){ do_tagged_op(`%cp%`, cross_tags, x@mat, y@mat, x@tags, y@tags) }
+)
+
+setMethod(
+  "%cp%",
+  signature = c("dMatrix", "tagged"),
+  function(x, y){ do_tagged_op(`%cp%`, right_tags, x, y@mat, empty_tags(nrow(x)), y@tags) }
+)
+
+setMethod(
+  "%cp%",
+  signature = c("tagged", "dMatrix"),
+  function(x, y){ do_tagged_op(`%cp%`, left_tags, x@mat, y, x@tags, empty_tags(nrow(y))) }
+)
 
 #' rbind operator
 #' @noRd
@@ -77,12 +158,40 @@
 
 #' all marginal and pairwise combinations
 #' @noRd
-`%pw%` <- function(x, y){
-    (x %+%  y)  %<>%
-    (x %cp% y)
-}
+setGeneric("%pw%", function(x, y) standardGeneric("%pw%"))
 
-#' Filter to a particular level
+setMethod(
+  "%pw%",
+  signature = c("dMatrix", "dMatrix"),
+  function(x, y){ (x %+%  y) %<>% (x %cp% y) }
+)
+
+setMethod(
+  "%pw%",
+  signature = c("integer", "integer"),
+  function(x, y){ x+y + (x*y) }
+)
+
+setMethod(
+  "%pw%",
+  signature = c("tagged", "tagged"),
+  function(x, y){ do_tagged_op(`%pw%`, cross_tags2, x@mat, y@mat, x@tags, y@tags) }
+)
+
+setMethod(
+  "%pw%",
+  signature = c("dMatrix", "tagged"),
+  function(x, y){ do_tagged_op(`%pw%`, right_tags2, x, y@mat, empty_tags(nrow(x)), y@tags) }
+)
+
+setMethod(
+  "%pw%",
+  signature = c("tagged", "dMatrix"),
+  function(x, y){ do_tagged_op(`%pw%`, left_tags2, x@mat, y, x@tags, empty_tags(nrow(y))) }
+)
+
+
+#' Subset to particular levels
 #' @noRd
 .zoom <- function(x, levels = 1){
   Matrix::sparseMatrix(i = rep.int(1, length(levels)),
@@ -92,6 +201,12 @@
 }
 
 z <- .zoom
+
+get_zoom_size <- function(expr){
+  f <- match.call(.zoom, expr)
+  length(f[["levels"]])
+}
+
 
 #' An internal function for creating all no-way, 1-way, 2-way, ... n-way
 #' combinations from a set of identity matrices.

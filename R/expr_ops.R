@@ -7,6 +7,11 @@ is_leafish <- function(x){
 }
 
 #' @importFrom rlang expr_name
+#' @noRd
+is_tagger <- function(x){
+  !rlang::is_symbol(x) && rlang::expr_name(x[[1]]) == "tag" && length(x) == 3
+}
+
 is_zoom <- function(x){
   grepl("^\\.zoom", rlang::expr_name(x))
 }
@@ -23,27 +28,8 @@ is_sum <- function(x){
   rlang::expr_name(x) == "+"
 }
 
-# is_sum_of_products <- function(x){
-#   if(!is_sum(x[[1]])){
-#     return(FALSE)
-#   }
-#
-#   if(is_product(x[[2]][[1]]) && is_product(x[[3]][[1]])){
-#     el1  <- purrr::map_chr(purrr::keep(x[[2]][-1], is_rootish), expr_name)
-#     el2  <- purrr::map_chr(purrr::keep(x[[3]][-1], is_rootish), expr_name)
-#
-#     any(el1 %in% el2)
-#
-#   } else {
-#     FALSE
-#   }
-#
-# }
-
-
 examine_expr <- function(expr){
 
-  # browser()
   # Exit if nullary, unary or zoom
   if(is_leafish(expr)){
     return(expr)
@@ -58,11 +44,11 @@ examine_expr <- function(expr){
   expr
 }
 
-traverse_expr <- function(expr){
+traverse_expr <- function(expr, f){
   if (length(expr) == 1 || is_zoom(expr[[1]]) ){
     expr
   } else {
-    expr[-1] <- lapply(expr[-1], function(x) examine_expr(traverse_expr(x)))
+    expr[-1] <- lapply(expr[-1], function(x) examine_expr(f(traverse_expr(x, f))))
  }
   expr
 }
@@ -70,7 +56,7 @@ traverse_expr <- function(expr){
 #' @importFrom rlang eval_tidy is_bare_formula
 #' @noRd
 
-eval_expr <- function(expr, data){
-  stopifnot(rlang::is_bare_formula(expr))
-  rlang::eval_tidy(traverse_expr(expr)[[2]], data = data)
+eval_expr <- function(expr, data, .f){
+  stopifnot(rlang::is_expression(expr))
+  rlang::eval_tidy(traverse_expr(expr, f = .f)[[2]], data = data)
 }
