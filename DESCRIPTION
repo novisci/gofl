@@ -1,7 +1,7 @@
 Package: gofl
 Type: Package
 Title: A grouping, organizing, and filtering language
-Version: 0.2.0
+Version: 0.2.1
 Authors@R: c(person("Bradley", "Saul", role = c("aut", "cre"), 
                             email = "bsaul@novisci.com"))
 Maintainer: Bradley Saul <bsaul@novisci.com>
@@ -11,7 +11,7 @@ Imports:
    Matrix (>= 1.2),
    rlang  (>= 0.4.2),
    purrr  (>= 0.3),
-   methods
+   methods (> 3.5)
 Suggests:
    testthat,
    dplyr,

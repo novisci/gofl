@@ -18,7 +18,7 @@ dat <- list(
   z = 1:4
 )
 
-create_grouping_matrix(~z + .zoom(x):y, dat)
+# create_grouping_matrix(~z + .zoom(x):y, dat)
 example1 <- create_groupings(~z + x:.zoom(y, c(1,2)), dat)
 head(example1)
 ```
@@ -87,6 +87,6 @@ dat <- list(
   baseline_ascvd     = c(TRUE, FALSE)
 )
 
-create_grouping_matrix(study_plan, dat)
+# create_grouping_matrix(study_plan, dat)
 # create_grouping_quos(study_plan, dat)
 ```
