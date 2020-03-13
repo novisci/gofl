@@ -13,7 +13,15 @@
 
 create_grouping_matrix <- function(formula, data){
   dat <- as_tmatrices(data)
-  eval_expr(formula, data = dat, .f = identity)
+  out <- eval_expr(formula, data = dat, .f = identity)
+
+  # browser()
+  # TODO: it would great to handle any duplicates within the operations rather
+  #       than this stage
+  duped <- duplicated(col_positions(out@mat))
+  out@mat  <- out@mat[!duped, ]
+  out@tags <- out@tags[!duped]
+  out
 }
 
 #' Create a list of filtration quosures

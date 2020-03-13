@@ -55,8 +55,8 @@ test_that("groupings are created", {
 
   for(i in  seq_along(dat[["expr"]])){
 
-    # create_grouping_matrix(~tag(z, "testTag"):y + x, data = facts)
-
+    # create_grouping_matrix(~z:y:x, data = facts)
+    # print(i)
     test <- gofl::create_groupings(  dat[["expr"]][[i]] , data = facts)
 
     should_be_tagged <- dat[["tag"]][[i]] > 0
@@ -172,4 +172,87 @@ test_that("examples work", {
 #     data = levels)
 
 
+})
+
+test_that("complicated example runs", {
+
+  calendar_summary_plan <- ~
+
+    # Within enrollment cohort
+    tag(keep_1,
+        c("enrollment_cohort", "enroll_on_index", "outcomes_enrollment")) +
+
+    # within enrolled: (for weighting)
+    #  - prevalent candidates
+    #      - overall
+    #      - by all age/gender crosses
+    #  - incident candidates
+    #      - overall
+    #      - by all age/gender crosses
+    tag(keep_2:(
+      (prev_cand + inc_cand_1yr + inc_cand_all_past) +
+        (prev_cand + inc_cand_1yr + inc_cand_all_past):(baseline_age_3cat*baseline_gender) ),
+      c("hf_cohort", "enroll_on_index", "outcomes_hf")
+    ) +
+
+    # within enrolled365: (for figures)
+    #  - prevalent candidates
+    #      - overall
+    #      - by all age/gender crosses
+    #  - incident candidates
+    #      - overall
+    #      - by all age/gender crosses (with subgrouping by region, diabetes)
+    tag(keep_3:(
+      (prev_cand + inc_cand_1yr + inc_cand_all_past) +
+        (prev_cand + inc_cand_1yr + inc_cand_all_past):
+        ((baseline_age_3cat*baseline_gender) *
+           (baseline_region +
+              baseline_state +
+              baseline_diabetes +
+              baseline_renal +
+              baseline_ascvd +
+              baseline_copd +
+              baseline_anemia))),
+      c("hf_cohort", "enroll_365_lookback", "outcomes_hf")
+    )  +
+    # within enrolled365: (for table 1)
+    #  - prevalent only
+    #  - incident only
+    tag(keep_3:(outcome_prv_hfdx + outcome_year_ind_hfdx),
+        c("hf_cohort", "enroll_365_lookback", "covariates")) +
+    #
+    #  within enrolledAll: (for sensitivity analysis)
+    tag(keep_4:(
+      (prev_cand + inc_cand_1yr + inc_cand_all_past) +
+        (prev_cand + inc_cand_1yr + inc_cand_all_past):(baseline_age_3cat*baseline_gender)),
+      c("hf_cohort", "enroll_all_lookback", "outcomes_hf"))
+
+  calendar_summary_dat <- list(
+    keep_1     = TRUE,
+    keep_2     = TRUE,
+    keep_3     = TRUE,
+    keep_4     = TRUE,
+    prev_cand  = TRUE,
+    inc_cand_1yr      = TRUE,
+    inc_cand_all_past = TRUE,
+    outcome_prv_hfdx       = TRUE,
+    outcome_year_ind_hfdx  = TRUE,
+    baseline_age_3cat = c("18-54", "55-74", "75+"),
+    baseline_gender   = c("M", "F"),
+    baseline_region   = c("Northeast", "Midwest", "South", "West", "Unknown"),
+    baseline_state    = c("CT", "ME", "MA", "NH", "RI", "VT", "NJ", "NY", "PA", "IL",
+                          "IN", "MI", "OH", "WI", "IA", "KS", "MN", "MO", "NE", "ND",
+                          "SD", "DE", "FL", "GA", "MD", "NC", "SC", "VA", "DC", "WV",
+                          "AL", "KY", "MS", "TN", "AR", "LA", "OK", "TX", "AZ", "CO",
+                          "ID", "MT", "NV", "NM", "UT", "WY", "AK", "CA", "HI", "OR",
+                          "WA"),
+    baseline_diabetes = c(TRUE, FALSE),
+    baseline_renal    = c(TRUE, FALSE),
+    baseline_ascvd    = c(TRUE, FALSE),
+    baseline_copd     = c(TRUE, FALSE),
+    baseline_anemia   = c(TRUE, FALSE)
+  )
+
+  test0 <- gofl::create_groupings(calendar_summary_plan, calendar_summary_dat)
+  expect_is(test0, "list")
 })

@@ -7,6 +7,14 @@ bin_rep <- function(x){
   apply(x, 1, as_bin)
 }
 
+col_positions <- function(x){
+  out <- vector(mode = "list", length = nrow(x))
+  for(i in seq_along(out)){
+    out[[i]] <- which(as.logical(x[i, ]))
+  }
+  out
+}
+
 collect_by_key <- function(l){
   out <- list()
   for(i in seq_along(l)){

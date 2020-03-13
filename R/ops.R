@@ -87,7 +87,11 @@ setMethod(
     ycol <- dimnames(y)[[2]]
     if(any(xcol %in% ycol)){
       out <- x %<n>% y
-      out <- out[!duplicated(bin_rep(x)), ]
+      # 20200313 - if the matrix is deduped here then the tags and the matrix
+      # gets out of sync. I'm pushing this further upstream to create_grouping_matrix
+      # for now. However,
+      # TODO: it would be great to avoid the deduping altogether.
+      # out <- out[!duplicated(bin_rep(x)), ]
     } else {
       out <- Matrix::bdiag(x, y)
       dimnames(out) <- list(NULL, c(xcol, ycol))
