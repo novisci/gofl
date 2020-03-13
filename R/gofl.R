@@ -53,7 +53,7 @@ create_groupings <- function(formula, data){
 
   # create intermediate quosures
   setnames <- rep(names(data), times = purrr::map_int(data, length))
-  rhsquos  <- purrr::flatten(purrr::map(data, ~ purrr::map(.x, rlang::quo)))
+  rhsquos  <- purrr::flatten(purrr::map(data, ~ purrr::map(.x, rlang::expr)))
 
   prepquos <- purrr::map2(setnames, rhsquos, ~ list(key = .x, value = .y))
   prepquos <- purrr::map(
