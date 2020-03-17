@@ -11,7 +11,8 @@ Imports:
    Matrix (>= 1.2),
    rlang  (>= 0.4.2),
    purrr  (>= 0.3),
-   methods (> 3.5)
+   methods (> 3.5),
+   assertthat (>= 0.2.1)
 Suggests:
    testthat,
    dplyr,
