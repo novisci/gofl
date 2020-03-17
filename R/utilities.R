@@ -50,3 +50,29 @@ gen_names <- function(n, x){
 split_names <- function(x){
   strsplit(x, split = sep)
 }
+
+reorder_columns_by_names <- function(mat, names){
+  cnames <- colnames(mat)
+  vnames <- gsub(paste0(sep, ".*"), "", cnames)
+  x <- rle(vnames)
+  x <- x$lengths[match(names, x$values)]
+  from_pos <- match(names, vnames)
+
+  new_pos <- unlist(Map(function(x, y) { sort(x:(x+y-1)) },
+                        from_pos, x))
+  mat[ , new_pos]
+
+}
+
+create_index <- function(grouping, data){
+  which_keys <- match(names(grouping), names(data))
+  index_values <- data[which_keys]
+  init <- rep.int(0, length(data))
+  idx_vals <- purrr::map2(index_values, grouping, ~ match(.y, .x))
+
+  # collapse claims where the value in an index position has > 1 value
+  idx_vals <- purrr::map_chr(idx_vals, ~ paste(.x, collapse = "_"))
+  init[which_keys] <- idx_vals
+  paste(init, collapse = "-")
+}
+

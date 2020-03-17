@@ -19,7 +19,7 @@ create_grouping_matrix <- function(formula, data){
   # TODO: it would great to handle any duplicates within the operations rather
   #       than this stage
   duped <- duplicated(col_positions(out@mat))
-  out@mat  <- out@mat[!duped, ]
+  out@mat  <- reorder_columns_by_names(out@mat[!duped, ], names(data))
   out@tags <- out@tags[!duped]
   out
 }
@@ -35,10 +35,23 @@ create_grouping_matrix <- function(formula, data){
 #' @export
 
 create_groupings <- function(formula, data){
-  # update data based on names used in formula
 
-  # browser()
+  assertthat::assert_that(
+    rlang::is_named(data),
+    msg = "All the elements of data must be named."
+  )
+
+  data_names <- names(data)
+
+  # keep only data elements that are used in the formula
   data <- data[unique(eval_expr(formula, data, get_symbol_text))]
+
+  # sort the data according to the order of the incoming data
+  data <- data[data_names[data_names %in% names(data)]]
+
+  # make all the data values character for consistency
+  data <- purrr::map(data, as.character)
+
 
   grouping_mat <- create_grouping_matrix(formula, data)
 
@@ -80,9 +93,14 @@ create_groupings <- function(formula, data){
     .f = ~ purrr::map(.x, ~ list(key = .x[1], value = .x[2])))
   gset <- purrr::map(gset, collect_by_key)
 
-  out <- purrr::pmap(
-    .l = list(gquos, gset, tags),
-    .f = ~ list(q = ..1, g = ..2, tags = ..3))
 
-  out
+  idxs <- purrr::map(gset, ~ create_index(.x, data))
+  grps <- purrr::pmap(
+    .l = list(idxs, gquos, gset, tags),
+    .f = ~ list(i = ..1, q = ..2, g = ..3, tags = ..4))
+
+  list(
+    data      = data,
+    groupings = grps
+  )
 }

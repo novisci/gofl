@@ -55,9 +55,8 @@ test_that("groupings are created", {
 
   for(i in  seq_along(dat[["expr"]])){
 
-    # create_grouping_matrix(~z:y:x, data = facts)
-    # print(i)
-    test <- gofl::create_groupings(  dat[["expr"]][[i]] , data = facts)
+    test <-
+      gofl::create_groupings( dat[["expr"]][[i]], data = facts)[["groupings"]]
 
     should_be_tagged <- dat[["tag"]][[i]] > 0
     is_tagged <- length(purrr::compact(purrr::map(test, ~ .x$tag))) > 0
@@ -230,6 +229,7 @@ test_that("complicated example runs", {
   calendar_summary_dat <- list(
     keep_1     = TRUE,
     keep_2     = TRUE,
+    unused     = TRUE,
     keep_3     = TRUE,
     keep_4     = TRUE,
     prev_cand  = TRUE,
