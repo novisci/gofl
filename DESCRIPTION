@@ -1,7 +1,7 @@
 Package: gofl
 Type: Package
 Title: A grouping, organizing, and filtering language
-Version: 0.3.0
+Version: 0.3.1
 Authors@R: c(person("Bradley", "Saul", role = c("aut", "cre"), 
                             email = "bsaul@novisci.com"))
 Maintainer: Bradley Saul <bsaul@novisci.com>

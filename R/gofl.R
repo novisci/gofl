@@ -50,7 +50,7 @@ create_groupings <- function(formula, data){
   data <- data[data_names[data_names %in% names(data)]]
 
   # make all the data values character for consistency
-  data <- purrr::map(data, as.character)
+  # data <- purrr::map(data, as.character)
 
 
   grouping_mat <- create_grouping_matrix(formula, data)
@@ -71,7 +71,11 @@ create_groupings <- function(formula, data){
   prepquos <- purrr::map2(setnames, rhsquos, ~ list(key = .x, value = .y))
   prepquos <- purrr::map(
     .x = prepquos,
-    .f = ~ list(key = .x$key, value = rlang::quo(!!rlang::sym(.x$key) == !!.x$value))
+    .f = ~ {
+      q <- rlang::quo(!!rlang::sym(.x$key) == !!.x$value)
+      q <- rlang::quo_set_env(q, rlang::empty_env())
+      list(key = .x$key, value = q)
+    }
   )
 
   # TODO: there's a bit of redundancy that could be cleaned up/functionized here
