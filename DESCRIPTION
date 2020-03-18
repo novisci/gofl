@@ -1,7 +1,7 @@
 Package: gofl
 Type: Package
 Title: A grouping, organizing, and filtering language
-Version: 0.3.1
+Version: 0.3.2
 Authors@R: c(person("Bradley", "Saul", role = c("aut", "cre"), 
                             email = "bsaul@novisci.com"))
 Maintainer: Bradley Saul <bsaul@novisci.com>
@@ -16,6 +16,7 @@ Imports:
 Suggests:
    testthat,
    dplyr,
+   tibble,
    knitr
 License: AGPL-3 + file LICENSE
 Encoding: UTF-8

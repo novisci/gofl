@@ -72,9 +72,8 @@ create_groupings <- function(formula, data){
   prepquos <- purrr::map(
     .x = prepquos,
     .f = ~ {
-      q <- rlang::quo(!!rlang::sym(.x$key) == !!.x$value)
-      q <- rlang::quo_set_env(q, rlang::empty_env())
-      list(key = .x$key, value = q)
+      list(key = .x$key,
+           value = rlang::quo(!!rlang::sym(.x$key) == !!.x$value))
     }
   )
 

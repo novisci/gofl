@@ -256,3 +256,23 @@ test_that("complicated example runs", {
   test0 <- gofl::create_groupings(calendar_summary_plan, calendar_summary_dat)
   expect_is(test0, "list")
 })
+
+test_that("filter quos work", {
+  dt <- tibble::tibble(
+    z = c(TRUE, TRUE, FALSE),
+    y = c(FALSE, TRUE, FALSE),
+    x = 1:3
+  )
+
+  dat <- list(
+    z = c(TRUE, FALSE),
+    y = TRUE
+  )
+
+  plan <- ~ z + y
+
+  test1 <- gofl::create_groupings(plan, dat)
+
+  tester <- purrr::map(test1$groupings, function(x) dplyr::filter(dt, !!! x$q) )
+  expect_is(tester, "list")
+})
