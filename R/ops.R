@@ -85,7 +85,7 @@ setMethod(
   function(x, y){
     xcol <- dimnames(x)[[2]]
     ycol <- dimnames(y)[[2]]
-    if(any(xcol %in% ycol)){
+    if (any(xcol %in% ycol)){
       out <- x %<n>% y
       # 20200313 - if the matrix is deduped here then the tags and the matrix
       # gets out of sync. I'm pushing this further upstream to create_grouping_matrix
@@ -140,48 +140,14 @@ setMethod(
   }
 )
 
-#' bind (sum) operator
-#' @noRd
-setGeneric("%<>%", function(x, y) standardGeneric("%<>%"))
-
-setMethod(
-  "%<>%",
-  signature = c("dMatrix", "dMatrix"),
-  function(x, y){
-    out <- rbind(x, y)
-    dimnames(out) <- dimnames(x)
-    out
-  }
-)
-
-setMethod(
-  "%<>%",
-  signature = c("list", "list"),
-  function(x, y){ `%s%`(x, y) }
-)
-
-setMethod(
-  "%<>%",
-  signature = c("tagged", "tagged"),
-  function(x, y){ apply_op_tagged(`%<>%`, x, y) }
-)
-
-setMethod(
-  "%<>%",
-  signature = c("integer", "integer"),
-  function(x, y){ `%s%`(x, y) }
-)
-
-
-
 #' all marginal and pairwise combinations
 #' @noRd
-setGeneric("%s<>p%", function(x, y) standardGeneric("%s<>p%"))
+setGeneric("%ssp%", function(x, y) standardGeneric("%ssp%"))
 
 setMethod(
-  "%s<>p%",
+  "%ssp%",
   signature = c("ANY", "ANY"),
-  function(x, y){ (x %s% y) %<>% (x %p% y) }
+  function(x, y){ (x %s% y) %s% (x %p% y) }
 )
 
 #------------------------------------------------------------------------------#
@@ -243,7 +209,7 @@ examine_expr <- function(expr){
   if(is_leafish(expr)){
     return(expr)
   } else if (is_sumproduct(expr[[1]])){
-    expr[[1]] <- `%s<>p%`
+    expr[[1]] <- `%ssp%`
   } else if (is_sum(expr[[1]])){
     expr[[1]] <- `%s%`
   } else if(is_product(expr[[1]])){
