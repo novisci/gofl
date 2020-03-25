@@ -11,17 +11,21 @@ vignette: >
 
 ```{r setup, include = FALSE}
 library(gofl)
+```
 
+# Simple example
+```{r}
 dat <- list(
   x = c(TRUE, FALSE),
   y = c("a", "b", "c"),
   z = 1:4
 )
 
-# create_grouping_matrix(~z + .zoom(x):y, dat)
 example1 <- create_groupings(~z + x:.zoom(y, c(1,2)), dat)
 head(example1)
 ```
+
+# Complicated example
 
 ```{r}
 
