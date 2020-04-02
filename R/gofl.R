@@ -15,7 +15,6 @@ create_grouping_matrix <- function(formula, data){
   dat <- as_tmatrices(data)
   out <- eval_expr(formula, data = dat, .f = identity)
 
-  # browser()
   # TODO: it would great to handle any duplicates within the operations rather
   #       than this stage
   duped <- duplicated(col_positions(out@mat))
@@ -104,6 +103,7 @@ create_groupings <- function(formula, data){
 
   list(
     data      = data,
-    groupings = grps
+    groupings = grps,
+    index_fcn = create_index_maker(data)
   )
 }
