@@ -6,6 +6,9 @@
 \usage{
 collapse_by_or(l)
 }
+\arguments{
+\item{l}{a list}
+}
 \description{
 Combine list elements by or'ing them together
 }
