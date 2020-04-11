@@ -34,7 +34,7 @@ collect_by_key <- function(l){
 }
 
 #' Combine list elements by or'ing them together
-#' @param l
+#' @param l a list
 #' @keywords internal
 collapse_by_or <- function(l){
   Reduce(function(x, y) {  rlang::quo( !! x | !! y) }, l)

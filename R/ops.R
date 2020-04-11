@@ -135,8 +135,9 @@ setMethod(
     # browser()
     hold <- purrr::cross2(x, y)
     hold <- purrr::map(hold, ~ Reduce(c, .x))
-    hold[c(seq.int(1, (length(x)*length(y)), by = 2L),
-           seq.int(2, (length(x)*length(y)), by = 2L))]
+    lx <- length(x)
+    ly <- length(y)
+    hold[c(vapply(1L:lx, function(x) seq.int(x, (lx*ly), by = lx), integer(ly)))]
   }
 )
 

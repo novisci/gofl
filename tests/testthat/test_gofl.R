@@ -173,6 +173,144 @@ test_that("examples work", {
 
 })
 
+
+test_that("tags align with groupings", {
+  test_plan <- ~
+    tag((tag(prev_cand, "tag1") +
+       tag(inc_cand, "tag2")):
+    (baseline_sex), "tag3")
+
+  test_dat <- list(
+    prev_cand = TRUE,
+    inc_cand  = TRUE,
+    baseline_sex      = c("M", "F"))
+
+  test0 <- gofl::create_groupings(test_plan, test_dat)
+
+  # all inc_cand should be tagged with tag2
+  inc_cand <- purrr::keep(test0$groupings,
+                          ~ "inc_cand" %in% names(.x$g) &&
+                            .x$g$inc_cand == "TRUE")
+
+  expect_equal(
+    purrr::map_lgl(inc_cand, ~ "tag2" %in% .x$tags),
+    !logical(2))
+
+  # all prev_cand should be tagged with tag1
+  prev_cand <- purrr::keep(test0$groupings,
+                           ~ "prev_cand" %in% names(.x$g) &&
+                             .x$g$prev_cand == "TRUE")
+  expect_equal(
+    purrr::map_lgl(prev_cand, ~ "tag1" %in% .x$tags),
+    !logical(2))
+
+  # Everything is tagged with tag3
+  expect_equal(
+    purrr::map_lgl(test0$groupings, ~ "tag3" %in% .x$tags),
+    !logical(4)
+  )
+
+})
+
+
+
+test_that("tags align with groupings", {
+  test_plan <- ~
+        (tag(prev_cand, "tag1") +
+         tag(inc_cand, "tag2") +
+           test):
+        (baseline_sex)
+
+  test_dat <- list(
+    test      = TRUE,
+    prev_cand = TRUE,
+    inc_cand  = TRUE,
+    baseline_sex      = c("M", "F"))
+
+  test0 <- gofl::create_groupings(test_plan, test_dat)
+
+  # all inc_cand should be tagged with tag2
+  inc_cand <- purrr::keep(test0$groupings,
+                          ~ "inc_cand" %in% names(.x$g) &&
+                            .x$g$inc_cand == "TRUE")
+
+  expect_equal(
+    purrr::map_lgl(inc_cand, ~ "tag2" %in% .x$tags),
+    !logical(2))
+
+  # all prev_cand should be tagged with tag1
+  prev_cand <- purrr::keep(test0$groupings,
+                           ~ "prev_cand" %in% names(.x$g) &&
+                             .x$g$prev_cand == "TRUE")
+  expect_equal(
+    purrr::map_lgl(prev_cand, ~ "tag1" %in% .x$tags),
+    !logical(2))
+
+  # all tags for test should be NULL
+  tester <- purrr::keep(test0$groupings,
+                        ~ "test" %in% names(.x$g) &&
+                          .x$g$test == "TRUE")
+  expect_equal(
+    purrr::map_lgl(tester, ~ is.null(.x$tags)),
+    !logical(2))
+
+})
+
+
+test_that("tags align with groupings with not everything tagged", {
+  test_plan <- ~
+    tag(test1:(
+      (tag(prev_cand, "tag1") +
+       tag(inc_cand, "tag2") +
+       test) +
+
+        (tag(prev_cand, "tag1") +
+         tag(inc_cand, "tag2") +
+         test):
+        (baseline_age_3cat*baseline_sex)),
+      c("tag3", "tag4"))
+
+
+  test_dat <- list(
+    test1     = TRUE,
+    prev_cand = TRUE,
+    inc_cand  = TRUE,
+    test      = TRUE,
+    baseline_age_3cat = c("18-54", "55-74", "75+"),
+    baseline_sex      = c("M", "F"),
+    baseline_region   = c("Northeast", "Midwest", "South", "West", "Unknown")
+  )
+
+  test0 <- gofl::create_groupings(test_plan, test_dat)
+
+  # all inc_cand should be tagged with tag2
+  inc_cand <- purrr::keep(test0$groupings,
+              ~ "inc_cand" %in% names(.x$g) &&
+                .x$g$inc_cand == "TRUE")
+
+  expect_equal(
+    purrr::map_lgl(inc_cand, ~ "tag2" %in% .x$tags),
+    !logical(12))
+
+  # all prev_cand should be tagged with tag1
+  prev_cand <- purrr::keep(test0$groupings,
+                          ~ "prev_cand" %in% names(.x$g) &&
+                            .x$g$prev_cand == "TRUE")
+  expect_equal(
+    purrr::map_lgl(prev_cand, ~ "tag1" %in% .x$tags),
+    !logical(12))
+
+
+  # all tags for test should be only be "tag3", "tag4"
+  tester <- purrr::keep(test0$groupings,
+                           ~ "test" %in% names(.x$g) &&
+                             .x$g$test == "TRUE")
+  expect_equal(
+    purrr::map_lgl(tester, ~ length(setdiff(.x$tags, c("tag3", "tag4"))) == 0),
+    !logical(12))
+
+})
+
 test_that("complicated example runs", {
 
   calendar_summary_plan <- ~
