@@ -1,0 +1,137 @@
+---
+title: "gofl Design"
+author: "Bradley"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{gofl design}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# The Language
+
+`gofl` is built around 3 algebraic operators:
+
+* `+`: the sum operator
+* `:`: the product operator
+* `*`: the sum of the sum and product
+
+By design, these operators correspond to the same operators in `R` model formulas. Under the hood, these operators are replaced in the AST by internal generic operators `%s%`, `%p%`, and `%ssp%` 
+
+Additionally, `gofl` has two functions, `tag` and `.zoom`, which have specific use cases.
+
+# The Algebra
+
+The work of `gofl` is done by defining how sum (`%s%`) and product (`%p%`) work on different types.
+
+Permuation matrices are used to define variable levels:
+
+```{r}
+X <- gofl:::as_tmatrix("var1", c("level1", "level2", "level3"))
+Y <- gofl:::as_tmatrix("var2", LETTERS[1:5])
+```
+
+Each row corresponds to a group:
+
+```{r}
+X@mat
+Y@mat
+```
+
+The sum of these two matrices is the direct sum, or block diagonal matrix:
+
+```{r}
+gofl:::`%s%`(X@mat, Y@mat)
+```
+
+The product of these two matrices is the cartesian product.
+
+```{r}
+gofl:::`%p%`(X@mat, Y@mat)
+```
+
+The sum of the sum and product does both the above operations but columns with the same name are stacked appropriately: 
+
+```{r}
+gofl:::`%ssp%`(X@mat, Y@mat)
+```
+
+These operators are defined analoguouly are defined for lists. The sum of two lists is concatenation:
+
+```{r}
+gofl:::`%s%`(list(1, 2), list(2, 3, 5))
+```
+
+The product of two lists is the cartesian product:
+
+```{r}
+gofl:::`%p%`(list(1, 2), list(2, 3, 5))
+```
+
+The same operators also work for integers:
+
+```{r}
+gofl:::`%s%`(2L, 3L)
+gofl:::`%p%`(2L, 3L)
+gofl:::`%ssp%`(2L, 3L)
+```
+
+To get `gofl` to work a data structure called `tagged` holds the matrix and the tags:
+
+```{r}
+str(X)
+```
+
+Then the operators are applied simultaneously to the matrices and the tags.
+```{r}
+gofl:::`%s%`(X, Y)
+```
+
+# Hijacking the AST
+
+The `traverse_expr` function replaces `+` with `%s%` and so on.
+
+```{r}
+ff <- ~ a*b + c:d + e
+nf <- gofl:::traverse_expr(ff, f = identity)
+# It's not pretty to look at
+nf
+```
+
+Now the new expression can be evaluated with data. Usually, our `data` here would be the `tagged` objects, but just for illustration:
+
+```{r}
+rlang::eval_tidy(nf[[2]], data = list(a = 1L, b = 3L, c = 4L, d = 2L, e =  7L))
+```
+
+The `traverse_expr` function can also take a function as an argument that is applied to each leaf of the AST. In this example `gofl:::replace_by_size` finds the `nrow` of a matrix.
+
+```{r}
+rlang::eval_tidy(
+  expr = gofl:::traverse_expr(ff, f = gofl:::replace_by_size)[[2]], 
+  data = list(
+  a = matrix(nrow = 1), 
+  b = matrix(nrow = 3), 
+  c = matrix(nrow = 4), 
+  d = matrix(nrow = 2),
+  e = matrix(nrow = 7)))
+```
+
+To continue the example from above and demonstrate how it works on the `tagged` type:
+
+```{r}
+ff <- ~ var1 + var2
+rlang::eval_tidy(
+  expr = gofl:::traverse_expr(ff, identity)[[2]], 
+  data = list(var1 = X, var2 = Y))
+```
