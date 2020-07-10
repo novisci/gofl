@@ -1,96 +1,158 @@
 ---
-title: "gofl usage"
+title: "Using gofl"
 author: "Bradley Saul"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Using gofl}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
 ---
 
-```{r setup, include = FALSE}
+```{r setup, include = TRUE, message=FALSE, warning=FALSE}
 library(gofl)
+library(dplyr)
 ```
 
-# Simple example
-```{r}
-dat <- list(
-  x = c(TRUE, FALSE),
-  y = c("a", "b", "c"),
-  z = 1:4
-)
+# Motivation
 
-example1 <- create_groupings(~z + x:.zoom(y, c(1,2)), dat)
-head(example1)
+A common task in data science pipelines is to summarize a dataset by subgroups. For example, consider everyone's (least) favorite dataset `mtcars`:
+
+```{r}
+str(mtcars)
 ```
 
-# Complicated example
+This dataset contains two binary variables by which one may be interested in grouping the data: `vs` and `am`. Two binary variables present 3 grouping (for $2^3 = 8$ possible groups total) for summarizing the data: marginally by the two groups within each variable, or jointly by the 4 groups defined by the cross of the two variables.
+
+One way to obtain these groups is to use `dplyr::group_by`. By way of example, say we are interested in the mean miles per gallon within each of these groups:
 
 ```{r}
+summarize_mpg <- function(dt) summarize(dt, mean(mpg))
 
+mtcars %>%
+  group_by(vs) %>%
+  summarize_mpg
 
-study_plan <- ~ 
-    # within enrolled: (for weighting)
-    #  - prevalent
-    #      - overall
-    #      - by all age/sex crosses
-    #  - incident
-    #      - overall
-    #      - by all age/sex crosses
-    (enroll:( 
-      (prev_cand + inc_cand) + 
-      (prev_cand + inc_cand):(baseline_age_cat*baseline_sex) )) + 
-  
-    # within enrolled365: (for figures)
-    #  - prevalent
-    #      - overall
-    #      - by all age/sex crosses
-    #  - incident
-    #      - overall
-    #      - by all age/sex crosses (with subgrouping by region, diabetes)
-    (enroll365:( 
-      (prev_cand + inc_cand) + 
-      ((prev_cand + inc_cand):
-        ((
-            baseline_age_cat*baseline_sex) *
-             (baseline_region +
-              baseline_diabetes +
-              baseline_renal +
-              baseline_ascvd)
-          )
-       )
-     ) 
-  ) + 
-  # within enrolled365: (for table 1)
-  #  - prevalent only 
-  #  - incident only  
-  (enroll365:((prev_only + inc_only))) +
-     
-  #  within enrolledAll: (for sensitivity analysis) 
-  #  - prevalent only (for table 1)
-  #  - incident only  (for table 1) 
-   (enrollAll:( 
-     (prev_cand + inc_cand) + 
-    ((prev_cand + inc_cand):(baseline_age_cat*baseline_sex) )))
+mtcars %>%
+  group_by(am) %>%
+  summarize_mpg
 
+mtcars %>%
+  group_by(vs, am) %>%
+  summarize_mpg
+```
+   
+That works, but as the number of grouping variables increases, this approach becomes untenable. `gofl` takes a different approach. The following `gofl` formula specifies groupings for each of the margins and the joint:
 
+```{r}
+mt_groups <- ~ vs + am + vs:am
+# or equivalently
+mt_groups <- ~ vs*am
+```
+
+A `gofl` specification is two parts: a `formula` defining the groupings and a `list` defining levels of the variables in the formula. At this time, the `list` of levels needs to be created by hand. Future versions of `gofl` may provide a means to automate this step. 
+
+```{r}
 dat <- list(
-  enroll    = TRUE,
-  enroll365 = TRUE,
-  enrollAll = TRUE,
-  prev_cand = TRUE,
-  inc_cand  = TRUE, 
-  prev_only = TRUE,
-  inc_only  = TRUE,
-  baseline_age_cat = c("45-54", "55-64", "65-74", "75+"),
-  baseline_sex     = c("female", "male"),
-  baseline_region  = c(""),
-  baseline_diabetes  = c(TRUE, FALSE),
-  baseline_renal     = c(TRUE, FALSE),
-  baseline_ascvd     = c(TRUE, FALSE)
+ vs = sort(unique(mtcars$vs)), # The sorting isn't strictly necessary.
+ am = sort(unique(mtcars$am))
 )
+```
 
-# create_grouping_matrix(study_plan, dat)
-# create_grouping_quos(study_plan, dat)
+With these two pieces of data the grouping specification can be created:
+```{r}
+grps <- create_groupings(formula = mt_groups, data = dat)
+```
+
+The result of `create_groupings` is a list with three elements: `r paste(names(grps), collapse = ", ")`. The `data` element is a just copy of the `data` argument. The `groupings` element is a `list` where each element is a specification for each group defined by the formula. In our example, the first group defines the subset containing `vs == 0`:
+
+```{r}
+str(grps$groupings[[1]])
+```
+
+A single group's specification has 4 parts:
+
+* `i`: the index of the group (described below)
+* `q`: a `quosure` that can be used to carry out the subgrouping in (e.g.) `dplyr::filter`
+* `g`: a `list` that specifies which variables and levels define the group
+* `tags`: a `character` vector of tags (See tags section)
+
+Here's another example of a grouping; in this case it is the subset where `vs == 1` and `am == 0`:
+
+```{r}
+str(grps$groupings[[7]])
+```
+
+## Using grouping soecification to obtain summaries
+
+With the groupings now defined we can now create a pipeline for summarizing within each group.
+
+```{r}
+purrr::map_dfr(
+  .x = grps$groupings,
+  .f = ~ {
+    mtcars %>% 
+    filter(!!! .x$q) %>% 
+    summarize_mpg() %>%
+    bind_cols(tibble(!!! .x$g))
+  }
+)
+```
+
+That's the basic idea of `gofl`. From the patterns described above you can specify much more complicated groupings.
+
+# Indices
+
+Each element of a grouping is even a unique index as follows:
+
+* each variable is given a positional index in the pattern of `v1-v2-v3-...-vn`, where the order is the order of the variables given in the `create_groupings` `data` argument. In the example, above `vs` corresponds to the first position (`v1`) and `am` to the second (`v2`).
+* each level of a variable is given a positive integer value. In the example, `vs = 0` corresponds to `1`, `vs = 1` corresponds to `2`. A group not involving `vs` corresponds to `0`.
+
+The index `1-0` in our example is the group defined by `vs == 0`; `0-2` is the group defined by `am == 1`; `1-2` is defined by `vs == 0 & am == 1`. 
+
+The `index_fcn` part of a `create_groupings` object allows the user to look up indices.
+
+```{r}
+grps$index_fcn(am = 0)
+grps$index_fcn(am = 0, vs = 1)
+grps$index_fcn(vs = 1)
+```
+
+Indices are useful when the number of groups is large and you need a way to quickly find a particular group.
+
+# Tagging
+
+In real applications, you may want downstream processes to apply different functions to different groups. The `tag` function allows you to tag particular groups by arbitrary `character` vectors. Let's make our example above even more unrealistic but nonetheless illustrative and take the mean in the marginal groups and the median in joint group.  
+
+First, we tag the grouping as appropriate:
+```{r}
+mt_groups <- ~ tag(vs + am, "marginal") + tag(vs:am, "joint")
+grps <- create_groupings(formula = mt_groups, data = dat)
+```
+
+Note that the `tag` element is now populated:
+
+```{r}
+grps$groupings[c(1,5)]
+```
+
+An example pipeline taking advantage of the `tag` may look like:
+
+```{r}
+summarize_mpg2 <- function(dt, tag){
+  avg <- switch(tag, "marginal" = mean, "joint" = median)
+  summarize(dt, avg(mpg))
+}
+
+purrr::map_dfr(
+  .x = grps$groupings,
+  .f = ~ {
+    mtcars %>% 
+    filter(!!! .x$q) %>% 
+    summarize_mpg2(.x$tag) %>%
+    bind_cols(tibble(!!! .x$g))
+  }
+)
 ```
