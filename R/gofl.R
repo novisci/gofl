@@ -4,23 +4,34 @@
 
 '_PACKAGE'
 
+#' @noRd
+overall <- function(names){
+  new("tagged",
+      mat  = Matrix::Matrix(0, 1L, length(names),
+                            dimnames = list(NULL, names)),
+      tags = list(""))
+}
 
 #' Creating a grouping matrix
 #'
 #' @param formula a RHS formula
-#' @param data list where each element is a
+#' @param data list where each element corresponds to a term in the \code{formula}
+#' @param include_overall an indicator of whether to include an "overall" grouping
+#'       (i.e. a row in the matrix with no 1s).
 #' @export
-
-create_grouping_matrix <- function(formula, data){
+create_grouping_matrix <- function(formula, data, include_overall){
   dat <- as_tmatrices(data)
   out <- eval_expr(formula, data = dat, .f = identity)
 
   # TODO: it would great to handle any duplicates within the operations rather
   #       than this stage
-  duped <- duplicated(col_positions(out@mat))
+  duped    <- duplicated(col_positions(out@mat))
   out@mat  <- reorder_columns_by_names(out@mat[!duped, ], names(data))
   out@tags <- out@tags[!duped]
-  out
+
+  `if`(include_overall,
+       c(overall(dimnames(out@mat)[[2]]), out),
+       out)
 }
 
 #' Create a list of filtration quosures
@@ -32,8 +43,7 @@ create_grouping_matrix <- function(formula, data){
 #' @inheritParams create_grouping_matrix
 #' @importFrom methods is
 #' @export
-
-create_groupings <- function(formula, data){
+create_groupings <- function(formula, data, include_overall = FALSE){
 
   assertthat::assert_that(
     rlang::is_named(data),
@@ -50,13 +60,10 @@ create_groupings <- function(formula, data){
 
   # make all the data values character for consistency
   # data <- purrr::map(data, as.character)
-
-
-  grouping_mat <- create_grouping_matrix(formula, data)
+  grouping_mat <- create_grouping_matrix(formula, data, include_overall)
 
   tags <- grouping_mat@tags
   grouping_mat <- grouping_mat@mat
-
 
   # TODO: there's a lot that could be cleaned up and refactor
   # make sure names are in order
@@ -82,7 +89,6 @@ create_groupings <- function(formula, data){
   gquos <- purrr::map(gquos, collect_by_key)
   gquos <- purrr::map(gquos, ~ unname(purrr::map(.x, collapse_by_or)))
 
-  # browser()
   # create grouping key/value
   colnames <- matrix(colnames, nrow = 1)
   gset <- purrr::map(

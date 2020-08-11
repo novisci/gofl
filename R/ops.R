@@ -8,11 +8,27 @@ setClass(
   )
 )
 
+#' @importFrom methods new
 apply_op_tagged <- function(op, x, y){
   methods::new("tagged", mat = op(x@mat, y@mat), tags = op(x@tags, y@tags) )
 }
 
+#' @noRd
 setMethod("nrow", "tagged", function(x) nrow(x@mat))
+
+#' Concatenate tagged
+#'
+#' @param x a tagged object
+#' @param ... more tagged objects
+#' @param recursive ignored
+#' @param use.names ignored
+#' @keywords internal
+setMethod("c", "tagged", function(x, ..., recursive = FALSE, use.names = TRUE) {
+  dots <- list(...)
+  new("tagged",
+      mat  = do.call("rbind", c(x@mat, purrr::map(dots, ~ .x@mat))),
+      tags = c(x@tags, purrr::flatten(purrr::map(dots, ~ .x@tags))))
+})
 
 #' Initialize a tagged object for category levels
 #' @param n name of category
@@ -24,10 +40,10 @@ as_tmatrix <- function(n, x){
   methods::new("tagged", mat = mat, tags = empty_tags(length(x)))
 }
 
+#' @noRd
 as_tmatrices <- function(l){
   purrr::imap(l, ~ as_tmatrix(.y, .x))
 }
-
 
 ## Matrix utilities ####
 
@@ -158,7 +174,6 @@ setMethod(
 #' @noRd
 .zoom <- function(x, levels = 1){
 
-  # browser()
   mat <- Matrix::sparseMatrix(i = rep.int(1, length(levels)),
                        j = levels,
                        dimnames = dimnames(x@mat),
@@ -205,6 +220,8 @@ is_sum <- function(x){
   rlang::expr_name(x) == "+"
 }
 
+#' Find and replace key expressions
+#' @noRd
 examine_expr <- function(expr){
   # Exit if nullary, unary or zoom
   if(is_leafish(expr)){
@@ -220,6 +237,8 @@ examine_expr <- function(expr){
   expr
 }
 
+#' Traverse an expression
+#' @noRd
 traverse_expr <- function(expr, f){
   if (length(expr) == 1 || is_zoom(expr[[1]]) ){
     expr
@@ -231,7 +250,6 @@ traverse_expr <- function(expr, f){
 
 #' @importFrom rlang eval_tidy is_bare_formula
 #' @noRd
-
 eval_expr <- function(expr, data, .f){
   stopifnot(rlang::is_expression(expr))
   rlang::eval_tidy(traverse_expr(expr, f = .f)[[2]], data = data)
@@ -239,7 +257,6 @@ eval_expr <- function(expr, data, .f){
 
 #------------------------------------------------------------------------------#
 # Tagging functions ####
-
 tag <- function(x, label){
   methods::new(
     "tagged",
@@ -270,7 +287,6 @@ empty_tags <- function(n){
 
 #------------------------------------------------------------------------------#
 # expression tree functions ####
-
 replace_by_size <- function(x){
   if (is_zoom(x)) {
     get_zoom_size(x)

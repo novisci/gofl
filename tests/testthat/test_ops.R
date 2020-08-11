@@ -102,3 +102,16 @@ test_that("eval_expr correctly evals expression", {
   # t3[ , c("x1", "x2", "y1", "y2", "z1", "z2", "z3")]
   # t4[ , c("x1", "x2", "y1", "y2", "z1", "z2", "z3")]
 })
+
+test_that("c on tagged works", {
+  x <- overall(c("x", "y", "z"))
+  y <- overall(c("x", "y", "z"))
+  z <- new("tagged", mat = y@mat, tags = list(c("a", "b")))
+
+
+  expect_true(nrow(c(x, y)@mat) == 2L)
+  expect_true(length(c(x, y)@tags) == 2L)
+  expect_true(nrow(c(x, z)@mat) == 2L)
+  expect_true(length(c(x, z)@tags) == 2L)
+
+})
