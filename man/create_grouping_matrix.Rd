@@ -4,12 +4,15 @@
 \alias{create_grouping_matrix}
 \title{Creating a grouping matrix}
 \usage{
-create_grouping_matrix(formula, data)
+create_grouping_matrix(formula, data, include_overall)
 }
 \arguments{
 \item{formula}{a RHS formula}
 
-\item{data}{list where each element is a}
+\item{data}{list where each element corresponds to a term in the \code{formula}}
+
+\item{include_overall}{an indicator of whether to include an "overall" grouping
+(i.e. a row in the matrix with no 1s).}
 }
 \description{
 Creating a grouping matrix

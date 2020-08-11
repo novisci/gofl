@@ -4,12 +4,15 @@
 \alias{create_groupings}
 \title{Create a list of filtration quosures}
 \usage{
-create_groupings(formula, data)
+create_groupings(formula, data, include_overall = FALSE)
 }
 \arguments{
 \item{formula}{a RHS formula}
 
-\item{data}{list where each element is a}
+\item{data}{list where each element corresponds to a term in the \code{formula}}
+
+\item{include_overall}{an indicator of whether to include an "overall" grouping
+(i.e. a row in the matrix with no 1s).}
 }
 \description{
 Each element is a list of quosures to be used in a filter statement. The list

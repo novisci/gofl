@@ -1,4 +1,4 @@
-
+library(dplyr)
 # data to check
 # - make sure things evaluate
 # - associativity
@@ -18,7 +18,7 @@ expand.grid(
 
 dat <- dat[dat$x != dat$y & dat$x != dat$z & dat$y != dat$z, ]
 
-library(dplyr)
+
 
 dat <-
 dat %>%
@@ -210,6 +210,26 @@ test_that("tags align with groupings", {
     !logical(4)
   )
 
+})
+
+
+test_that("grouping works with overall included", {
+  test_plan <- ~
+    tag((tag(prev_cand, "tag1") +
+           tag(inc_cand, "tag2")):
+          (baseline_sex), "tag3")
+
+  test_dat <- list(
+    prev_cand = TRUE,
+    inc_cand  = TRUE,
+    baseline_sex      = c("M", "F"))
+
+  test0 <- gofl::create_groupings(test_plan, test_dat, include_overall = TRUE)
+
+  expect_length(test0$groupings, 5L)
+  expect_equal(test0$groupings[[1]]$i, "0-0-0")
+  expect_equal(test0$groupings[[1]]$q, list())
+  expect_equal(test0$groupings[[1]]$g, list())
 })
 
 

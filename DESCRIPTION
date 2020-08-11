@@ -1,12 +1,12 @@
 Package: gofl
 Type: Package
 Title: A grouping, organizing, and filtering language
-Version: 0.3.4
+Version: 0.3.6
 Authors@R: c(person("Bradley", "Saul", role = c("aut", "cre"), 
                             email = "bsaul@novisci.com"))
 Maintainer: Bradley Saul <bsaul@novisci.com>
-Description: Provides a simple DSL for writing grouping specifications; i.e.,
-     the ways to filter a dataset based on binary and/or categorical variables.
+Description: Provides a DSL for writing grouping specifications; i.e., the ways 
+    to filter a dataset based on categorical (including binary) variables.
 Imports:
    Matrix (>= 1.2),
    rlang  (>= 0.4.2),
@@ -24,4 +24,4 @@ LazyData: true
 URL: https://gitlab.novisci.com/nsStat/gofl
 Repository: cran.novisci.com
 VignetteBuilder: knitr
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.1
