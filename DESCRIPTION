@@ -16,6 +16,7 @@ Imports:
 Suggests:
    testthat,
    dplyr,
+   rmarkdown,
    tibble,
    knitr
 License: AGPL-3 + file LICENSE
