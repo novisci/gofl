@@ -1,4 +1,4 @@
-image: registry.novisci.com/nsstat/statocker/r/pkgdev:latest
+image: registry.novisci.com/nsstat/nsbuild/r:4.1.2
 
 stages:
   - testing
@@ -13,7 +13,7 @@ package:
   stage: package
   script:
     - rm -rf .git
-    - R CMD build .
+    - R CMD build --no-build-vignettes .
 
 site:
   stage: package
